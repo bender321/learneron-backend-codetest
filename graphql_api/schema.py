@@ -1,5 +1,4 @@
 import graphene
-from typing import List
 from graphene_django import DjangoObjectType
 from graphql_api.models import Movie, Actor
 
@@ -40,6 +39,7 @@ class CreateMovie(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, name, year, actors):
+
         movie = Movie(name=name, year=year)
         movie.save()
 
@@ -61,15 +61,26 @@ class Query(graphene.ObjectType):
     def resolve_all_movies(root, info, since, till):
 
         movies = Movie.objects.all()
+        res = []
 
-        if since == {}:
+        if since == {} and till == {}:
             return movies
+
+        elif since != {} and till == {}:
+            for _ in movies:
+                if _.year >= since:
+                    res.append(_)
+
+        elif till != {} and since == {}:
+            for _ in movies:
+                if _.year <= till:
+                    res.append(_)
         else:
-            res = []
             for _ in movies:
                 if till >= _.year >= since:
                     res.append(_)
-            return res
+
+        return res
 
 
 class Mutation(graphene.ObjectType):
